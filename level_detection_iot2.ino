@@ -63,6 +63,8 @@ void setup()
   pinMode(trigger3, OUTPUT);
   pinMode(echo3, INPUT);
  
+  pinMode(buzzer,OUTPU);
+ 
   WiFi.mode(WIFI_STA);
   ThingSpeak.begin(client);
 }
@@ -115,7 +117,9 @@ void loop()
   distanceCM3 = 40-(distanceCM3 / 2);
   Serial.print("Distance in cm3: ");
   Serial.println(distanceCM3);
-  
+  //if bin is full , buzzer is on.
+  if(distanceCM1<10||distanceCM2<10||distanceCM1<10)
+    digitalWrite(buzzer);
   //datatransfer to thingspeak cloud
   ThingSpeak.writeField(myChannelField, ChannelField1, distanceCM1, myWriteAPIKey);
   ThingSpeak.writeField(myChannelField, ChannelField2, distanceCM2, myWriteAPIKey);
