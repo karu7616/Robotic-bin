@@ -1,0 +1,123 @@
+ /*
+  * Project Name: ROBOTIC BIN
+  * Author List:  krishna kumar
+  * Filename: level_detection_iot2.ino
+  * Functions:  setup,loop
+  * Global Variables: char ssid[] = "Karu",char pass[] = "karu1999",const int trigger1= 16,
+const int echo1= 5,
+const int trigger2= 4,
+const int echo2= 0,
+const int trigger3=14,
+const int echo3= 12,
+const int buzzer=2,
+long T1,
+long T2,
+long T3,
+float distanceCM1,
+float distanceCM2,
+float distanceCM3,
+unsigned long myChannelField = 951496,const int ChannelField1 = 1,const int ChannelField2 = 2,const int ChannelField3 = 3,const char * myWriteAPIKey = "JQLXL8GK8VJOVSSP"
+                            */
+
+
+//packages for thingspeak cloud and node mcu
+#include "ThingSpeak.h"
+#include <ESP8266WiFi.h>
+  
+//----------- Enter you Wi-Fi Details---------//
+char ssid[] = "Karu"; //SSID
+char pass[] = "karu1999"; // Password
+//-------------------------------------------//
+//pin declaration
+const int trigger1= 16;//trig pin of ultrasonic sensor1
+const int echo1= 5;    //echo pin of ultrasonic sensor1
+const int trigger2= 4; //trig pin of ultrasonic sensor2
+const int echo2= 0;    //echo pin of ultrasonic sensor2
+const int trigger3=14; //trig pin of ultrasonic sensor3
+const int echo3= 12;   //echo pin of ultrasonic sensor3
+const int buzzer=2;    //buzzer pin for intimating when the bin is full
+long T1;
+long T2;
+long T3;
+float distanceCM1;  //level of bin1
+float distanceCM2;  //level of bin2
+float distanceCM3;  //level of bin3
+WiFiClient  client;
+
+unsigned long myChannelField = 951496; // Channel ID
+const int ChannelField1 = 1; // Which channel to write data
+const int ChannelField2 = 2; // Which channel to write data
+const int ChannelField3 = 3; // Which channel to write data
+const char * myWriteAPIKey = "JQLXL8GK8VJOVSSP"; // Your write API Key
+
+void setup()
+{
+  //initialize serial port
+  Serial.begin(115200);
+  pinMode(trigger1, OUTPUT);
+  pinMode(echo1, INPUT);
+  
+  pinMode(trigger2, OUTPUT);
+  pinMode(echo2, INPUT);
+  
+  pinMode(trigger3, OUTPUT);
+  pinMode(echo3, INPUT);
+ 
+  WiFi.mode(WIFI_STA);
+  ThingSpeak.begin(client);
+}
+void loop()
+{
+  if (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(ssid);
+    while (WiFi.status() != WL_CONNECTED)
+    {
+      WiFi.begin(ssid, pass);
+      Serial.print(".");
+      delay(5000);
+    }
+    Serial.println("\nConnected.");
+  }
+  //calculation of level of bin 1
+  digitalWrite(trigger1, LOW);
+  delay(1);
+  digitalWrite(trigger1, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger1, LOW);
+  T1= pulseIn(echo1, HIGH);
+  distanceCM1 = T1 * 0.034;
+  distanceCM1 = distanceCM1 / 2;
+  Serial.print("Distance in cm1: ");
+  Serial.println(distanceCM1);
+
+  //calculation of level of bin 2
+  digitalWrite(trigger2, LOW);
+  delay(1);
+  digitalWrite(trigger2, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger2, LOW);
+  T2= pulseIn(echo2, HIGH);
+  distanceCM2 = T2 * 0.034;
+  distanceCM2 = 40-(distanceCM2 / 2);
+  Serial.print("Distance in cm2: ");
+  Serial.println(distanceCM2);
+  
+  //calculation of level of bin 3
+  digitalWrite(trigger3, LOW);
+  delay(1);
+  digitalWrite(trigger3, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger3, LOW);
+  T3= pulseIn(echo3, HIGH);
+  distanceCM3 = T3 * 0.034;
+  distanceCM3 = 40-(distanceCM3 / 2);
+  Serial.print("Distance in cm3: ");
+  Serial.println(distanceCM3);
+  
+  //datatransfer to thingspeak cloud
+  ThingSpeak.writeField(myChannelField, ChannelField1, distanceCM1, myWriteAPIKey);
+  ThingSpeak.writeField(myChannelField, ChannelField2, distanceCM2, myWriteAPIKey);
+  ThingSpeak.writeField(myChannelField, ChannelField3, distanceCM3, myWriteAPIKey);  
+}
